@@ -91,10 +91,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .navigation {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
   &__tabs {
     display: flex;
     flex-wrap: nowrap;

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, BrowserView } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, BrowserView, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -27,6 +27,9 @@ function createWindow(): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+  process.platform === 'win32' && mainWindow.removeMenu()
+
+  process.platform === 'darwin' && Menu.setApplicationMenu(Menu.buildFromTemplate([]))
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -47,7 +50,7 @@ function createBrowserView(): BrowserView {
   let lastHandle
   const handleWindowResize = (e) => {
     e.preventDefault()
-
+    console.log(1)
     lastHandle = setTimeout(() => {
       if (lastHandle != null) clearTimeout(lastHandle)
       browserView.setBounds(browserView.getBounds())
