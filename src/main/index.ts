@@ -5,7 +5,7 @@ import icon from '../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow
 const views: Array<BrowserView> = []
-
+const heightOffset = 65
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 900,
@@ -18,10 +18,6 @@ function createWindow(): void {
       sandbox: false
     }
   })
-
-  const homeView = createBrowserView()
-  views.push(homeView)
-  mainWindow.setBrowserView(homeView)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -42,11 +38,23 @@ function createBrowserView(): BrowserView {
   const browserView = new BrowserView()
   browserView.setBounds({
     x: 0,
-    y: 65,
+    y: heightOffset,
     width: mainWindow.getBounds().width,
-    height: mainWindow.getBounds().height - 65
+    height: mainWindow.getBounds().height - heightOffset
   })
   browserView.setAutoResize({ width: true, height: true })
+
+  let lastHandle
+  const handleWindowResize = (e) => {
+    e.preventDefault()
+
+    lastHandle = setTimeout(() => {
+      if (lastHandle != null) clearTimeout(lastHandle)
+      browserView.setBounds(browserView.getBounds())
+    })
+  }
+
+  mainWindow.on('resize', handleWindowResize)
 
   browserView.webContents.on('page-title-updated', (_, title) => {
     mainWindow.webContents.send('page-title-updated', { title })
@@ -65,15 +73,15 @@ function selectTab(index: number) {
 }
 function closeTab(index: number) {
   const viewToClose = views[index]
-  if (viewToClose) {
+  if (!viewToClose) return
+  try {
     viewToClose.webContents.destroy()
     views.splice(index, 1)
-
-    if (views.length === 0) {
-      app.quit()
-    } else {
+    if (views.length) {
       selectTab(views.length - 1)
     }
+  } catch (e) {
+    console.log(e)
   }
 }
 

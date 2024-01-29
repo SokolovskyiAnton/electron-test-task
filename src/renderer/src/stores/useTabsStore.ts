@@ -17,13 +17,7 @@ interface TabsState {
 export const useTabsStore = defineStore('tabsStore', {
   state: (): TabsState => {
     return {
-      tabs: [
-        {
-          id: Date.now(),
-          title: 'Electron Test Task',
-          url: Urls.defaultHost
-        }
-      ],
+      tabs: [],
       activeTabIndex: 0
     }
   },
