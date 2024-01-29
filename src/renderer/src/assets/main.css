@@ -1,9 +1,4 @@
 @import './base.css';
-
-body {
-  user-select: none;
-}
-
 code {
   font-weight: 600;
   padding: 3px 5px;
