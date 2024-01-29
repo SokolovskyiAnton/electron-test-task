@@ -74,6 +74,12 @@ function selectTab(selectTabIndex: number) {
   const selectedView = views[selectTabIndex]
   if (selectedView) {
     mainWindow.setBrowserView(selectedView)
+    selectedView.setBounds({
+      x: 0,
+      y: heightOffset,
+      width: mainWindow.getBounds().width,
+      height: mainWindow.getBounds().height - heightOffset
+    })
   }
 }
 function closeTab(closeTabIndex: number) {
