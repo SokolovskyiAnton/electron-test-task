@@ -42,16 +42,17 @@
 import { Urls, useTabsStore } from '../stores/useTabsStore'
 import { computed, onMounted, onUnmounted } from 'vue'
 import { validateUrlPattern } from '../utils/validators'
+import { storeToRefs } from 'pinia'
 
+const protocols = ['http', 'https']
 const tabsStore = useTabsStore()
+const { tabs, activeTabIndex } = storeToRefs(tabsStore)
 const { addTab, closeTab, selectTab, goBack, goForward, reloadTab, updateActiveTabInfo } = tabsStore
 
-const tabs = computed(() => tabsStore.getTabs)
-const activeTabIndex = computed(() => tabsStore.getActiveTabIndex)
 const activeTabUrl = computed(() => tabs.value[activeTabIndex.value]?.url ?? '')
 
 function handleUrlEnter(e) {
-  const url = addProtocol(e.target.value.trim())
+  const url = addSecurityProtocol(e.target.value.trim())
 
   if (validateUrl(url)) {
     window.electron.ipcRenderer.send('load-url', { url, index: activeTabIndex.value })
@@ -63,12 +64,12 @@ function handleUrlEnter(e) {
   }
 }
 
-function validateUrl(url: string) {
+function validateUrl(url: string): boolean {
   return validateUrlPattern.test(url)
 }
 
-function addProtocol(url: string) {
-  return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
+function addSecurityProtocol(url: string): string {
+  return protocols.some((protocol) => url.startsWith(protocol)) ? url : `https://${url}`
 }
 
 onMounted(() => {

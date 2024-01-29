@@ -38,14 +38,30 @@ function createWindow(): void {
 
 function createBrowserView(): BrowserView {
   const browserView = new BrowserView()
-  browserView.setBounds({
-    x: 0,
-    y: heightOffset,
-    width: mainWindow.getBounds().width,
-    height: mainWindow.getBounds().height - heightOffset
-  })
-  browserView.setAutoResize({ width: true, height: true })
+  browserView.webContents.on('did-finish-load', () =>
+    browserView.setBounds({
+      x: 0,
+      y: heightOffset,
+      width: mainWindow.getBounds().width,
+      height: mainWindow.getBounds().height - heightOffset
+    })
+  )
+  let lastHandle
+  const handleWindowResize = (e) => {
+    e.preventDefault()
 
+    lastHandle = setTimeout(() => {
+      if (lastHandle != null) clearTimeout(lastHandle)
+      browserView.setBounds({
+        x: 0,
+        y: heightOffset,
+        height: mainWindow.getBounds().height,
+        width: mainWindow.getBounds().width
+      })
+    })
+  }
+
+  mainWindow.on('resize', handleWindowResize)
   browserView.webContents.on('page-title-updated', (_, title) => {
     mainWindow.webContents.send('page-title-updated', { title })
   })
@@ -55,19 +71,22 @@ function createBrowserView(): BrowserView {
 
   return browserView
 }
-function selectTab(index: number) {
-  const selectedView = views[index]
+function selectTab(selectTabIndex: number) {
+  const selectedView = views[selectTabIndex]
   if (selectedView) {
     mainWindow.setBrowserView(selectedView)
   }
 }
-function closeTab(index: number) {
-  const viewToClose = views[index]
+function closeTab(closeTabIndex: number) {
+  const viewToClose = views[closeTabIndex]
   if (!viewToClose) return
   try {
     viewToClose.webContents.destroy()
-    views.splice(index, 1)
-    if (views.length) {
+    views.splice(closeTabIndex, 1)
+    console.log(closeTabIndex)
+    console.log(views.length)
+    if (views.length === closeTabIndex) {
+      console.log('@@@')
       selectTab(views.length - 1)
     }
   } catch (e) {
@@ -75,21 +94,21 @@ function closeTab(index: number) {
   }
 }
 
-function goBack(index: number) {
-  const view = views[index]
+function goBack(tabIndex: number) {
+  const view = views[tabIndex]
   if (view && view.webContents.canGoBack()) {
     view.webContents.goBack()
   }
 }
-function goForward(index: number) {
-  const view = views[index]
+function goForward(tabIndex: number) {
+  const view = views[tabIndex]
   if (view && view.webContents.canGoForward()) {
     view.webContents.goForward()
   }
 }
 
-function reloadTab(index: number) {
-  const view = views[index]
+function reloadTab(tabIndex: number) {
+  const view = views[tabIndex]
   if (view) {
     view.webContents.reload()
   }

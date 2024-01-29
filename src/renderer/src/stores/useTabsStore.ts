@@ -21,10 +21,6 @@ export const useTabsStore = defineStore('tabsStore', {
       activeTabIndex: 0
     }
   },
-  getters: {
-    getTabs: ({ tabs }) => tabs,
-    getActiveTabIndex: ({ activeTabIndex }) => activeTabIndex
-  },
   actions: {
     addTab(url = Urls.defaultSearchEngine) {
       const newTab = {
@@ -37,14 +33,16 @@ export const useTabsStore = defineStore('tabsStore', {
       window.electron.ipcRenderer.send('open-tab', newTab)
       this.selectTab(this.tabs.length - 1)
     },
-    selectTab(index: number) {
-      this.activeTabIndex = index
-      window.electron.ipcRenderer.send('select-tab', index)
+    selectTab(selectTabIndex: number) {
+      this.activeTabIndex = selectTabIndex
+      window.electron.ipcRenderer.send('select-tab', selectTabIndex)
     },
-    closeTab(index: number) {
-      this.tabs.splice(index, 1)
-      this.activeTabIndex = this.tabs.length - 1
-      window.electron.ipcRenderer.send('close-tab', index)
+    closeTab(closeTabIndex: number) {
+      this.tabs.splice(closeTabIndex, 1)
+      if (closeTabIndex < this.activeTabIndex) {
+        this.activeTabIndex = this.tabs.length - 1
+      }
+      window.electron.ipcRenderer.send('close-tab', closeTabIndex)
     },
     goBack() {
       window.electron.ipcRenderer.send('go-back', this.activeTabIndex)
