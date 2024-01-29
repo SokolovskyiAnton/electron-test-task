@@ -18,7 +18,7 @@ function createWindow(): void {
       sandbox: false
     }
   })
-
+  mainWindow.setMenu(null)
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -44,18 +44,6 @@ function createBrowserView(): BrowserView {
     height: mainWindow.getBounds().height - heightOffset
   })
   browserView.setAutoResize({ width: true, height: true })
-
-  let lastHandle
-  const handleWindowResize = (e) => {
-    e.preventDefault()
-    console.log(1)
-    lastHandle = setTimeout(() => {
-      if (lastHandle != null) clearTimeout(lastHandle)
-      browserView.setBounds(mainWindow.getBounds())
-    })
-  }
-
-  mainWindow.on('resize', handleWindowResize)
 
   browserView.webContents.on('page-title-updated', (_, title) => {
     mainWindow.webContents.send('page-title-updated', { title })
