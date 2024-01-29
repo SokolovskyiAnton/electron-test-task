@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, BrowserView } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, BrowserView, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -19,6 +19,7 @@ function createWindow(): void {
     }
   })
   mainWindow.setMenu(null)
+  Menu.setApplicationMenu(null)
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -93,25 +94,23 @@ function reloadTab(index: number) {
     view.webContents.reload()
   }
 }
-function openTab(payload: { url: string }) {
+async function openTab(payload: { url: string }) {
   const view = createBrowserView()
   views.push(view)
   mainWindow.setBrowserView(view)
-  view.webContents.loadURL(payload.url)
+  await view.webContents.loadURL(payload.url)
 }
 
-function loadUrl(payload: { index: number; url: string }) {
+async function loadUrl(payload: { index: number; url: string }) {
   if (process.env['ELECTRON_RENDERER_URL'] === payload.url) return
 
   const view = views[payload.index]
 
-  if (!view) return
-
-  if (payload.index > 0) {
-    view.webContents.loadURL(payload.url)
-  } else {
+  if (!view) {
     mainWindow.webContents.send('open-new-tab', { url: payload.url })
+    return
   }
+  await view.webContents.loadURL(payload.url)
 }
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
@@ -119,8 +118,8 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-  ipcMain.on('open-tab', (_, payload) => {
-    openTab(payload)
+  ipcMain.on('open-tab', async (_, payload) => {
+    await openTab(payload)
   })
   ipcMain.on('select-tab', (_, index) => {
     selectTab(index)
@@ -137,8 +136,8 @@ app.whenReady().then(() => {
   ipcMain.on('go-forward', (_, index) => {
     goForward(index)
   })
-  ipcMain.on('load-url', (_, payload) => {
-    loadUrl(payload)
+  ipcMain.on('load-url', async (_, payload) => {
+    await loadUrl(payload)
   })
 
   createWindow()
