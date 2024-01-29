@@ -38,14 +38,14 @@ function createWindow(): void {
 
 function createBrowserView(): BrowserView {
   const browserView = new BrowserView()
-  browserView.webContents.on('did-finish-load', () =>
+  browserView.webContents.on('did-finish-load', () => {
     browserView.setBounds({
       x: 0,
       y: heightOffset,
       width: mainWindow.getBounds().width,
       height: mainWindow.getBounds().height - heightOffset
     })
-  )
+  })
   let lastHandle
   const handleWindowResize = (e) => {
     e.preventDefault()
@@ -55,12 +55,11 @@ function createBrowserView(): BrowserView {
       browserView.setBounds({
         x: 0,
         y: heightOffset,
-        height: mainWindow.getBounds().height,
+        height: mainWindow.getBounds().height - heightOffset,
         width: mainWindow.getBounds().width
       })
     })
   }
-
   mainWindow.on('resize', handleWindowResize)
   browserView.webContents.on('page-title-updated', (_, title) => {
     mainWindow.webContents.send('page-title-updated', { title })
@@ -83,12 +82,6 @@ function closeTab(closeTabIndex: number) {
   try {
     viewToClose.webContents.destroy()
     views.splice(closeTabIndex, 1)
-    console.log(closeTabIndex)
-    console.log(views.length)
-    if (views.length === closeTabIndex) {
-      console.log('@@@')
-      selectTab(views.length - 1)
-    }
   } catch (e) {
     console.log(e)
   }

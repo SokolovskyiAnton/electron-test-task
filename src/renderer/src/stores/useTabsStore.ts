@@ -39,10 +39,17 @@ export const useTabsStore = defineStore('tabsStore', {
     },
     closeTab(closeTabIndex: number) {
       this.tabs.splice(closeTabIndex, 1)
-      if (closeTabIndex < this.activeTabIndex) {
-        this.activeTabIndex = this.tabs.length - 1
+      if (closeTabIndex === this.activeTabIndex) {
+        this.activeTabIndex = this.tabs.length ? Math.min(this.tabs.length - 1, closeTabIndex) : -1
+      } else if (closeTabIndex < this.activeTabIndex) {
+        this.activeTabIndex--
       }
+
       window.electron.ipcRenderer.send('close-tab', closeTabIndex)
+
+      if (this.activeTabIndex !== -1) {
+        this.selectTab(this.activeTabIndex)
+      }
     },
     goBack() {
       window.electron.ipcRenderer.send('go-back', this.activeTabIndex)
